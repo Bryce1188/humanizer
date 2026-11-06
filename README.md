@@ -1,201 +1,178 @@
-# Humanizer
+# Humanizer 中文增强版
 
-A skill for Claude Code and OpenCode that removes signs of AI-generated writing from text, making it sound more natural and human.
+让 AI 写作少些套话，保留事实，也保留你的语气。
 
-## Installation
+Humanizer 是一个用于文字润色的 Agent Skill，适合文章、工作汇报、实验报告、技术文档和个人写作。本版本以中文为主，保留上游 26 类编辑规则，补充中文示例、文体判断和成稿复核；需要时也可以处理英文。
 
-### Claude Code
+## 改写效果
 
-Clone directly into Claude Code's skills directory:
+原文：
+
+> 本月我们持续深入推进流程优化，全面赋能团队协同。审批环节从五个减少到三个，平均处理时间从四天缩短到两天，充分彰显了提质增效的重要成果。
+
+改写后：
+
+> 本月我们将审批环节从五个减到三个，平均处理时间从四天缩短到两天。
+
+删除空泛评价，保留具体行动和两组数据。更多示例见[中文编辑参考](references/chinese-editing.md)。
+
+## 能帮你做什么
+
+| 功能 | 具体处理 |
+|---|---|
+| 中文去 AI 味 | 处理空泛开场、机械过渡、刻意升华、四字词堆叠，以及“赋能”“全面深入”等缺少具体含义的表达。 |
+| 保留事实与证据边界 | 核对数字、日期、单位、引用、比较对象和限定条件；缺少细节时提示补充或简化表述，避免编造经历与承诺。 |
+| 匹配作者语气 | 可以提供自己的文字样本，按样本调整句长、用词、标点和节奏，保留个人偏好与情绪。 |
+| 按文体润色 | 工作汇报保留进度与困难，学术和技术文本保留术语与不确定性，个人随笔保留真实感受。 |
+| 编辑 Markdown 与 Obsidian | 只修改范围内的文字，保护 YAML 属性、代码、链接目标、`[[双链]]`、嵌入、块标识、标签和引用键。 |
+| 直接交付成稿 | 默认先给最终改写稿；需要时补充简短说明。也支持只诊断问题，或按要求展示修改理由。 |
+| 复核最终文字 | 改写后再次核对事实、文风和格式，检查是否仍有重复总结、套话或翻译腔。 |
+
+这些规则用于辅助编辑。必要的步骤、专业术语、真实对比和作者习惯应当保留，不能仅凭某个词判断一句话需要重写。
+
+## 安装
+
+### 使用 Skills CLI
+
+安装本仓库的中文增强版：
 
 ```bash
-mkdir -p ~/.claude/skills
-git clone https://github.com/blader/humanizer.git ~/.claude/skills/humanizer
+npx skills add Bryce1188/humanizer --global
 ```
 
-Or copy the skill file manually if you already have this repo cloned:
+去掉 `--global` 可安装到当前项目。安装时选择你使用的 Agent，完成后重新加载技能。
+
+### 手动安装
+
+下载本仓库，或克隆到本地：
 
 ```bash
-mkdir -p ~/.claude/skills/humanizer
-cp SKILL.md ~/.claude/skills/humanizer/
+git clone https://github.com/Bryce1188/humanizer.git
 ```
 
-### OpenCode
+将整个 `humanizer` 文件夹放进所用 Agent 的技能目录。必须保留 `references/`，中文编辑规则会从中读取；只复制 `SKILL.md` 会缺少这部分内容。
 
-Clone directly into OpenCode's skills directory:
+### Claude Code 插件
 
-```bash
-mkdir -p ~/.config/opencode/skills
-git clone https://github.com/blader/humanizer.git ~/.config/opencode/skills/humanizer
+在支持该插件格式的 Claude Code 中执行：
+
+```text
+/plugin marketplace add Bryce1188/humanizer
+/plugin install humanizer@humanizer
 ```
 
-Or copy the skill file manually if you already have this repo cloned:
+插件调用方式为 `/humanizer:humanizer`。其他支持 `SKILL.md` 的 Agent，可使用 Skills CLI 或手动安装。
 
-```bash
-mkdir -p ~/.config/opencode/skills/humanizer
-cp SKILL.md ~/.config/opencode/skills/humanizer/
+## 使用示例
+
+安装后，可在支持相应调用语法的 Agent 中使用 `$humanizer` 或 `/humanizer`，也可以直接说明需要用 Humanizer 润色。
+
+### 润色一段文字
+
+```text
+请用 humanizer 润色下面这段中文，保留全部事实和我的语气，直接给最终稿：
+
+[粘贴原文]
 ```
 
-> **Note:** OpenCode also scans `~/.claude/skills/` for compatibility, so if you use both tools, a single clone into `~/.claude/skills/humanizer/` is enough.
+### 按自己的风格改写
 
-## Usage
+```text
+请用 humanizer 改写，参考我下面的文字样本。
+保留样本的用词和节奏，不要替我补充经历。
 
-### Claude Code
+我的文字样本：
+[粘贴自己的文章片段]
 
-```
-/humanizer
-
-[paste your text here]
-```
-
-### OpenCode
-
-```
-/humanizer
-
-[paste your text here]
+需要改写的内容：
+[粘贴待改写文字]
 ```
 
-Or ask the model to humanize text directly in either tool:
+### 编辑文档或 Obsidian 笔记
 
-```
-Please humanize this text: [your text]
-```
+```text
+请用 humanizer 润色这篇 Markdown 笔记，只修改正文。
+保留 YAML、代码、链接、双链、嵌入、标签和引用键。
 
-### Voice Calibration
-
-To match your personal writing style, provide a sample of your own writing:
-
-```
-/humanizer
-
-Here's a sample of my writing for voice matching:
-[paste 2-3 paragraphs of your own writing]
-
-Now humanize this text:
-[paste AI text to humanize]
+文件路径：[填写文件路径]
 ```
 
-The skill will analyze your sentence rhythm, word choices, and quirks, then apply them to the rewrite instead of producing generic "clean" output.
+### 只检查，不改写
 
-## Overview
+```text
+请用 humanizer 检查下面文字的 AI 味，指出具体问题和理由，暂时不要改写。
 
-Based on [Wikipedia's "Signs of AI writing"](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) guide, maintained by WikiProject AI Cleanup. This comprehensive guide comes from observations of thousands of instances of AI-generated text.
+[粘贴原文]
+```
 
-The skill also includes a final "obviously AI generated" audit pass and a second rewrite, to catch lingering AI-isms in the first draft.
+也可以明确要求轻度润色、调整结构、保留篇幅，或解释关键修改。
 
-### Key Insight from Wikipedia
+## 如何处理文字
 
-> "LLMs use statistical algorithms to guess what should come next. The result tends toward the most statistically likely result that applies to the widest variety of cases."
+先通读原文，找出影响表达的句式与结构；再根据文体改写，核对事实与限定条件，最后复核成稿。长文优先保持连贯段落，清单和操作步骤按实际用途保留。
 
-## 33 Patterns Detected (with Before/After Examples)
+例如，实验结果中的“可能有关”不能改成“证明有效”，没有统计检验的结果不能写成“显著提升”。原文没有提供功能、数据或个人经历时，润色也不能补上。
 
-### Content Patterns
+本 Skill 用于改善表达，不承诺通过 AI 检测器。
 
-| # | Pattern | Before | After |
-|---|---------|--------|-------|
-| 1 | **Significance inflation** | "marking a pivotal moment in the evolution of..." | "was established in 1989 to collect regional statistics" |
-| 2 | **Notability name-dropping** | "cited in NYT, BBC, FT, and The Hindu" | "In a 2024 NYT interview, she argued..." |
-| 3 | **Superficial -ing analyses** | "symbolizing... reflecting... showcasing..." | Remove or expand with actual sources |
-| 4 | **Promotional language** | "nestled within the breathtaking region" | "is a town in the Gonder region" |
-| 5 | **Vague attributions** | "Experts believe it plays a crucial role" | "according to a 2019 survey by..." |
-| 6 | **Formulaic challenges** | "Despite challenges... continues to thrive" | Specific facts about actual challenges |
+<details>
+<summary>查看 26 类编辑规则</summary>
 
-### Language Patterns
+## The 26 patterns
 
-| # | Pattern | Before | After |
-|---|---------|--------|-------|
-| 7 | **AI vocabulary** | "Actually... additionally... testament... landscape... showcasing" | "also... remain common" |
-| 8 | **Copula avoidance** | "serves as... features... boasts" | "is... has" |
-| 9 | **Negative parallelisms / tailing negations** | "It's not just X, it's Y", "..., no guessing" | State the point directly |
-| 10 | **Rule of three** | "innovation, inspiration, and insights" | Use natural number of items |
-| 11 | **Synonym cycling** | "protagonist... main character... central figure... hero" | "protagonist" (repeat when clearest) |
-| 12 | **False ranges** | "from the Big Bang to dark matter" | List topics directly |
-| 13 | **Passive voice / subjectless fragments** | "No configuration file needed" | Name the actor when it helps clarity |
+保留上游规则名称，便于与 [SKILL.md](SKILL.md) 对照。规则按强度和频率排序；标注为弱线索的表达需要结合上下文判断。
 
-### Style Patterns
+| # | 规则名 | 处理重点 |
+|---|---|---|
+| 1 | **Not X but Y** | 减少没有实际对比内容的“不是……而是……”。 |
+| 2 | **One-line closers and dramatic fragments** | 删除重复总结、刻意停顿和碎片化升华。 |
+| 3 | **Sayings that sound deep** | 将故作深刻的金句改成具体观点。 |
+| 4 | **Staged run-up before the point** | 去掉宣布“接下来要讲什么”的空泛开场。 |
+| 5 | **Arguing with no one** | 删除对不存在的异议所作的辩解。 |
+| 6 | **Forced triads** | 按信息需要列举，不为了完整感硬凑三项。 |
+| 7 | **Repeated sentence openings** | 调整机械重复的句首与节奏。 |
+| 8 | **Dashes as the universal connector** | 检查过度使用破折号，尊重作者样本和实际用途。 |
+| 9 | **Stacked qualifiers** | 精简叠加的限定词，保留真实的不确定性。 |
+| 10 | **Hyphenated pairs everywhere** | 减少英文中不必要的连字符，保留固定用法。 |
+| 11 | **Passive voice and missing subjects** | 在有助于理解时说明谁做了什么。 |
+| 12 | **Overused AI words** | 用具体、常见的词替换成串的模板词汇。 |
+| 13 | **Inflated significance** | 去掉缺少依据的重要性宣告与前景拔高。 |
+| 14 | **Vague connection or association** | 有依据时说清关系，不擅自补充身份或角色。 |
+| 15 | **Shallow -ing riders** | 检查英文句尾附带的空泛解释与意义延伸。 |
+| 16 | **Sales language** | 将缺乏事实支撑的宣传用语改为平实描述。 |
+| 17 | **Borrowed authority** | 删除无来源的专家背书和装饰性的媒体名单。 |
+| 18 | **Avoiding is, are, and has** | 让英文中的简单关系使用简单动词。 |
+| 19 | **Bold as decoration** | 减少装饰性加粗和没有信息作用的标签。 |
+| 20 | **Decorative headings** | 让标题说明内容，减少装饰性符号和夸张措辞。 |
+| 21 | **Curly quotation marks** | 按作者习惯和目标格式处理英文引号。 |
+| 22 | **Chatbot residue** | 清除混入正文的问候、恭维和追加服务话术。 |
+| 23 | **Knowledge-limit disclaimers and guesses** | 删除模型知识声明与无依据猜测。 |
+| 24 | **A heading repeated in the first sentence** | 去掉正文对标题的重复。 |
+| 25 | **Writing about the document instead of its subject** | 减少对文稿自身布局和编写过程的无用说明。 |
+| 26 | **Re-explaining what the reader knows** | 对话回复先给结论，只补充影响判断的新信息。 |
 
-| # | Pattern | Before | After |
-|---|---------|--------|-------|
-| 14 | **Em/en dashes** | "institutions—not the people—yet this continues—" | Cut them: periods, commas, colons, or parentheses |
-| 15 | **Boldface overuse** | "**OKRs**, **KPIs**, **BMC**" | "OKRs, KPIs, BMC" |
-| 16 | **Inline-header lists** | "**Performance:** Performance improved" | Convert to prose |
-| 17 | **Title Case Headings** | "Strategic Negotiations And Partnerships" | "Strategic negotiations and partnerships" |
-| 18 | **Emojis** | "🚀 Launch Phase: 💡 Key Insight:" | Remove emojis |
-| 19 | **Curly quotes** | `said “the project”` | `said “the project”` |
-| 26 | **Hyphenated word pairs** | “cross-functional, data-driven, client-facing” | Drop hyphens on common word pairs |
-| 27 | **Persuasive authority tropes** | "At its core, what matters is..." | State the point directly |
-| 28 | **Signposting announcements** | "Let's dive in", "Here's what you need to know" | Start with the content |
-| 29 | **Fragmented headers** | "## Performance" + "Speed matters." | Let the heading do the work |
-| 30 | **Diff-anchored writing** | "This function was added to replace..." | Describe what it does, not what changed |
-| 31 | **Manufactured punchlines / staccato drama** | "It had no preference. No prior. No nostalgia." | Use varied sentence lengths and concrete claims |
-| 32 | **Aphorism formulas** | "Symmetry is the language of trust" | Replace the formula with the actual claim |
-| 33 | **Conversational rhetorical openers** | "Honestly? It depends..." | Remove the fake-candid setup |
+</details>
 
-### Communication Patterns
+## 文件说明
 
-| # | Pattern | Before | After |
-|---|---------|--------|-------|
-| 20 | **Chatbot artifacts** | "I hope this helps! Let me know if..." | Remove entirely |
-| 21 | **Cutoff disclaimers** | "While details are limited in available sources..." | Find sources or remove |
-| 22 | **Sycophantic tone** | "Great question! You're absolutely right!" | Respond directly |
+| 文件 | 用途 |
+|---|---|
+| [SKILL.md](SKILL.md) | 技能入口、处理流程和 26 类通用规则。 |
+| [references/chinese-editing.md](references/chinese-editing.md) | 中文规则、例外、改写示例和交付前检查。 |
+| [agents/openai.yaml](agents/openai.yaml) | 兼容 Agent 的技能显示信息与默认提示词。 |
+| [.claude-plugin/](.claude-plugin/) | Claude 插件及 marketplace 配置。 |
+| [.cursor-plugin/](.cursor-plugin/) | Cursor 插件配置。 |
+| [CHANGELOG.md](CHANGELOG.md) | 版本记录。 |
+| [scripts/validate-package.py](scripts/validate-package.py) | 检查版本、规则编号与插件配置是否一致。 |
 
-### Filler and Hedging
+## 版本与来源
 
-| # | Pattern | Before | After |
-|---|---------|--------|-------|
-| 23 | **Filler phrases** | "In order to", "Due to the fact that" | "To", "Because" |
-| 24 | **Excessive hedging** | "could potentially possibly" | "may" |
-| 25 | **Generic conclusions** | "The future looks bright" | Specific plans or facts |
+本版本基于 [blader/humanizer](https://github.com/blader/humanizer) **3.1.0**，中文修订为 **cn.2**。导入基线提交为 `0ef9fe5bc3572734fd3ae6c448fe00a30cd5dcf0`，中文增强版由 [Bryce1188](https://github.com/Bryce1188) 维护。
 
-## Full Example
+中文示例组织、速查与编辑自评参考 [Humanizer-zh](https://github.com/op7418/Humanizer-zh)，其速查与评分部分注明参考 [stop-slop](https://github.com/hardikpandya/stop-slop)。本仓库的中文示例已重新编写；编辑自评用于检查文字，不代表检测器结果。
 
-**Before (AI-sounding):**
-> Great question! Here is an essay on this topic. I hope this helps!
->
-> AI-assisted coding serves as an enduring testament to the transformative potential of large language models, marking a pivotal moment in the evolution of software development. In today's rapidly evolving technological landscape, these groundbreaking tools—nestled at the intersection of research and practice—are reshaping how engineers ideate, iterate, and deliver, underscoring their vital role in modern workflows.
->
-> At its core, the value proposition is clear: streamlining processes, enhancing collaboration, and fostering alignment. It's not just about autocomplete; it's about unlocking creativity at scale, ensuring that organizations can remain agile while delivering seamless, intuitive, and powerful experiences to users. The tool serves as a catalyst. The assistant functions as a partner. The system stands as a foundation for innovation.
->
-> Industry observers have noted that adoption has accelerated from hobbyist experiments to enterprise-wide rollouts, from solo developers to cross-functional teams. The technology has been featured in The New York Times, Wired, and The Verge. Additionally, the ability to generate documentation, tests, and refactors showcases how AI can contribute to better outcomes, highlighting the intricate interplay between automation and human judgment.
->
-> - 💡 **Speed:** Code generation is significantly faster, reducing friction and empowering developers.
-> - 🚀 **Quality:** Output quality has been enhanced through improved training, contributing to higher standards.
-> - ✅ **Adoption:** Usage continues to grow, reflecting broader industry trends.
->
-> While specific details are limited based on available information, it could potentially be argued that these tools might have some positive effect. Despite challenges typical of emerging technologies—including hallucinations, bias, and accountability—the ecosystem continues to thrive. In order to fully realize this potential, teams must align with best practices.
->
-> In conclusion, the future looks bright. Exciting times lie ahead as we continue this journey toward excellence. Let me know if you’d like me to expand on any section!
+上游通用规则参考维基百科的 [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing)。
 
-**After (Humanized):**
-> AI coding assistants can speed up the boring parts of the job. They're great at boilerplate: config files and the little glue code you don't want to write. They can also help you sketch a test, but you still have to read it.
->
-> The dangerous part is how confident the suggestions look. I've accepted code that compiled and passed lint, then discovered later it missed the point because I stopped paying attention.
->
-> If you treat it like autocomplete and review every line, it's useful. If you use it to avoid thinking, it will help you ship bugs faster.
->
-> The only real backstop is tests. Without them, you're mostly judging vibes.
+## 许可证
 
-## References
-
-- [Wikipedia: Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) - Primary source
-- [WikiProject AI Cleanup](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_AI_Cleanup) - Maintaining organization
-
-## Version History
-
-- **2.8.0** - Added style/cadence patterns #31-33 for manufactured punchlines, aphorism formulas, and conversational rhetorical openers; expanded #20 to catch offer-to-continue chatbot closers. 33 patterns total.
-- **2.7.0** - Added pattern #30 (diff-anchored writing); made em/en dashes a hard cut rather than "overuse"; expanded #21 to cover speculative gap-filling ("maintains a low profile"). 30 patterns total.
-- **2.6.0** - Cleanup pass: consolidated the duplicated workflow sections, gated the personality guidance to content where voice is wanted, removed the model-fingerprinting subsection, and condensed the worked example. No change to the 29 patterns.
-- **2.5.1** - Added a passive-voice / subjectless-fragment rule, raising the total to 29 patterns
-- **2.5.0** - Added patterns for persuasive framing, signposting, and fragmented headers; expanded negative parallelisms to cover tailing negations; tightened wording around em dash overuse; fixed frontmatter wording to use "filler phrases"
-- **2.4.0** - Added voice calibration: match the user's personal writing style from samples
-- **2.3.0** - Added pattern #25: hyphenated word pair overuse
-- **2.2.0** - Added a final "obviously AI generated" audit + second-pass rewrite prompts
-- **2.1.1** - Fixed pattern #18 example (curly quotes vs straight quotes)
-- **2.1.0** - Added before/after examples for all 24 patterns
-- **2.0.0** - Complete rewrite based on raw Wikipedia article content
-- **1.0.0** - Initial release
-
-## License
-
-MIT
+采用 [MIT License](LICENSE)，保留上游作者 Siqi Chen 的版权声明。
